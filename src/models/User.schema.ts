@@ -1,14 +1,15 @@
 import {Schema,model, CallbackWithoutResultAndOptionalError} from 'mongoose';
-import bcrypt from 'bcrypt';
+import bcrypt, { compare } from 'bcrypt';
+import bycrpt from 'bcrypt';
 let SALT_WORK_FACTOR = 10;
-interface IUser{
+export interface IUser{
     id?:number,
     first_name:string,
     last_name:string,
     email:string,
     password:string,
     password_confirm:string
-
+    Login(user:IUser):boolean
 }
 
 const userSchema=new Schema<IUser>({
@@ -41,7 +42,29 @@ const userSchema=new Schema<IUser>({
 
         });
 
+        const comparePasswordsHash=async(hashPassword:string,plainPassword:string):Promise<boolean>=>{
+
+            const password=await bcrypt.compare(plainPassword, hashPassword);
+
+            if(!password){
+                return false;
+            }
+
+            return true;
+        }
+
+    userSchema.methods.Login=function(plainPassword:string):Promise<boolean>{
+       let user=this;
+       return  comparePasswordsHash(user.password,plainPassword);
+
+    }
+
+  
 
 const User=model<IUser>('User',userSchema);
 
 export default User;
+
+function callback(err: Error): any {
+    throw new Error('Function not implemented.');
+}
